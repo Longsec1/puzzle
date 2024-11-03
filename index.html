@@ -16,6 +16,17 @@
         }
         .game-container {
             display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+        }
+        .play-area {
+            display: grid;
+            grid-template-rows: 1fr 1fr;
+            gap: 20px;
+        }
+        .container-row {
+            display: flex;
             gap: 10px;
         }
         .beaker {
@@ -35,6 +46,10 @@
             margin: 3px 0;
             cursor: pointer;
         }
+        .suspended {
+            transform: translateY(-20px);
+            border: 2px solid #000;
+        }
         .controls {
             margin-top: 20px;
             text-align: center;
@@ -48,12 +63,22 @@
 </head>
 <body>
 
-<div>
-    <div class="game-container">
-        <!-- Beakers to hold squares -->
-        <div class="beaker" id="beaker1"></div>
-        <div class="beaker" id="beaker2"></div>
-        <div class="beaker" id="beaker3"></div>
+<div class="game-container">
+    <div class="play-area">
+        <!-- Top row with empty containers -->
+        <div class="container-row">
+            <div class="beaker" id="beakerTop1"></div>
+            <div class="beaker" id="beakerTop2"></div>
+            <div class="beaker" id="beakerTop3"></div>
+            <div class="beaker" id="beakerTop4"></div>
+        </div>
+        <!-- Bottom row with colored squares -->
+        <div class="container-row">
+            <div class="beaker" id="beakerBottom1"></div>
+            <div class="beaker" id="beakerBottom2"></div>
+            <div class="beaker" id="beakerBottom3"></div>
+            <div class="beaker" id="beakerBottom4"></div>
+        </div>
     </div>
     <div class="controls">
         <button class="button" onclick="resetGame()">Reset Game</button>
@@ -61,12 +86,23 @@
 </div>
 
 <script>
-    // Define the colors for the squares
-    const colors = ['#FF5733', '#33FF57', '#3357FF'];
-    const beakerElements = [document.getElementById('beaker1'), document.getElementById('beaker2'), document.getElementById('beaker3')];
-    let selectedSquare = null;
+    // Define colors for the squares
+    const colors = ['#FF5733', '#33FF57', '#3357FF', '#FF33A1'];
+    const beakerElements = [
+        document.getElementById('beakerBottom1'),
+        document.getElementById('beakerBottom2'),
+        document.getElementById('beakerBottom3'),
+        document.getElementById('beakerBottom4')
+    ];
+    const topBeakerElements = [
+        document.getElementById('beakerTop1'),
+        document.getElementById('beakerTop2'),
+        document.getElementById('beakerTop3'),
+        document.getElementById('beakerTop4')
+    ];
+    let suspendedSquare = null;
 
-    // Initialize the game by adding colored squares to beakers
+    // Initialize the game by adding colored squares to the bottom containers
     function initGame() {
         colors.forEach((color, index) => {
             for (let i = 0; i < 3; i++) {
@@ -80,27 +116,26 @@
         });
     }
 
-    // Function to select a square
+    // Function to select a square (suspend it for movement)
     function selectSquare(square) {
-        if (selectedSquare) {
-            if (selectedSquare === square) {
-                selectedSquare = null; // Unselect the square if clicked again
-            } else {
-                moveSquare(selectedSquare, square);
-                selectedSquare = null;
-            }
+        if (suspendedSquare) {
+            // If a square is already in suspension, move it to a new container
+            moveSquare(suspendedSquare, square.parentElement);
+            suspendedSquare.classList.remove('suspended');
+            suspendedSquare = null;
         } else {
-            selectedSquare = square;
+            // Suspend the selected square
+            suspendedSquare = square;
+            square.classList.add('suspended');
         }
     }
 
-    // Function to move a square to a new beaker if conditions allow
-    function moveSquare(square, targetSquare) {
-        const targetBeaker = targetSquare.parentElement;
+    // Function to move a suspended square to a new beaker
+    function moveSquare(square, targetBeaker) {
         const sourceBeaker = square.parentElement;
 
-        // Allow moving if the target beaker has the same color on top or is empty
-        if (targetBeaker.lastChild && targetBeaker.lastChild.dataset.color === square.dataset.color || !targetBeaker.lastChild) {
+        // Allow moving if the target beaker is empty or the top square matches the color
+        if (!targetBeaker.lastChild || targetBeaker.lastChild.dataset.color === square.dataset.color) {
             targetBeaker.appendChild(square);
             checkWinCondition();
         }
@@ -108,13 +143,15 @@
 
     // Reset the game
     function resetGame() {
-        beakerElements.forEach(beaker => beaker.innerHTML = '');
+        // Clear all beakers
+        [...beakerElements, ...topBeakerElements].forEach(beaker => beaker.innerHTML = '');
+        suspendedSquare = null;
         initGame();
     }
 
     // Check if the player has completed the puzzle
     function checkWinCondition() {
-        const isWin = beakerElements.every(beaker => {
+        const isWin = [...beakerElements, ...topBeakerElements].every(beaker => {
             const squares = Array.from(beaker.children);
             return squares.length === 3 && squares.every(s => s.dataset.color === squares[0].dataset.color);
         });
@@ -126,4 +163,4 @@
 </script>
 
 </body>
-            </html>
+                </html>
