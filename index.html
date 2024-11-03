@@ -39,16 +39,19 @@
             align-items: center;
             background-color: #fff;
             padding: 5px;
+            transition: height 0.2s ease; /* Animate height changes */
         }
         .square {
             width: 70px;
             height: 40px;
             margin: 3px 0;
             cursor: pointer;
+            transition: transform 0.2s ease; /* Animate square lift */
         }
         .suspended {
-            transform: translateY(-20px);
+            transform: translateY(-60px); /* Lift square higher */
             border: 2px solid #000;
+            z-index: 1; /* Ensure lifted square is on top */
         }
         .controls {
             margin-top: 20px;
@@ -101,6 +104,7 @@
         document.getElementById('beakerTop4')
     ];
     let suspendedSquare = null;
+    let previousBeaker = null;
 
     // Initialize the game by adding colored squares to the bottom containers
     function initGame() {
@@ -110,41 +114,56 @@
                 square.classList.add('square');
                 square.style.backgroundColor = color;
                 square.dataset.color = color;
-                square.onclick = () => selectSquare(square);
                 beakerElements[index].appendChild(square);
             }
         });
     }
 
     // Function to select a square (suspend it for movement)
-    function selectSquare(square) {
-        if (suspendedSquare) {
-            // If a square is already in suspension, move it to a new container
-            moveSquare(suspendedSquare, square.parentElement);
-            suspendedSquare.classList.remove('suspended');
-            suspendedSquare = null;
-        } else {
-            // Suspend the selected square
-            suspendedSquare = square;
-            square.classList.add('suspended');
+    function selectSquare(beaker) {
+        if (beaker.lastChild) {
+            const topSquare = beaker.lastChild;
+            if (suspendedSquare) {
+                // If a square is already in suspension, move it to a new container
+                moveSquare(suspendedSquare, beaker);
+                suspendedSquare.classList.remove('suspended');
+                suspendedSquare = null;
+            } else {
+                // Suspend the top square
+                suspendedSquare = topSquare;
+                topSquare.classList.add('suspended');
+                previousBeaker = beaker;
+            }
         }
     }
 
     // Function to move a suspended square to a new beaker
     function moveSquare(square, targetBeaker) {
-        const sourceBeaker = square.parentElement;
-
         // Allow moving if the target beaker is empty or the top square matches the color
         if (!targetBeaker.lastChild || targetBeaker.lastChild.dataset.color === square.dataset.color) {
             targetBeaker.appendChild(square);
             checkWinCondition();
+            adjustContainerHeight(previousBeaker);
+            adjustContainerHeight(targetBeaker);
+        }
+    }
+
+    // Adjust the height of the beaker when moving squares
+    function adjustContainerHeight(beaker) {
+        if (beaker.lastChild) {
+            beaker.style.height = (200 - (beaker.children.length * 40)) + 'px'; // Reduce height based on square count
+        } else {
+            beaker.style.height = '200px'; // Reset to full height if empty
         }
     }
 
     // Reset the game
     function resetGame() {
         // Clear all beakers
-        [...beakerElements, ...topBeakerElements].forEach(beaker => beaker.innerHTML = '');
+        [...beakerElements, ...topBeakerElements].forEach(beaker => {
+            beaker.innerHTML = '';
+            beaker.style.height = '200px'; // Reset height
+        });
         suspendedSquare = null;
         initGame();
     }
@@ -157,6 +176,14 @@
         });
         if (isWin) alert("Congratulations! You've completed the level!");
     }
+
+    // Event listeners for clicking on beakers
+    beakerElements.forEach(beaker => {
+        beaker.onclick = () => selectSquare(beaker);
+    });
+    topBeakerElements.forEach(beaker => {
+        beaker.onclick = () => selectSquare(beaker);
+    });
 
     // Start the game
     initGame();
