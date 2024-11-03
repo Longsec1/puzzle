@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PuzzlePlex</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f9;
+        }
+
+        #title-screen, #game-area, #game-over {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            border: 2px solid #333;
+            background-color: #fff;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 400px;
+        }
+
+        #title-screen.active, #game-area.active, #game-over.active {
+            display: block;
+        }
+
+        #game-area .puzzle-board {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .tile {
+            width: 60px;
+            height: 60px;
+            background-color: #5ea3e1;
+            color: #fff;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin: 10px;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            background-color: #ccc;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Title Screen -->
+    <div id="title-screen" class="active">
+        <h1>PuzzlePlex</h1>
+        <p>Welcome to PuzzlePlex! Arrange the tiles in ascending order to complete each level.</p>
+        <button onclick="startGame()">Start Game</button>
+    </div>
+
+    <!-- Game Area -->
+    <div id="game-area">
+        <h2>Level <span id="level-number">1</span></h2>
+        <div class="puzzle-board" id="puzzle-board">
+            <!-- Tiles will be generated here -->
+        </div>
+        <button id="next-button" onclick="nextLevel()" disabled>Next Level</button>
+        <button onclick="restartGame()">Restart Game</button>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="game-over">
+        <h2>Congratulations!</h2>
+        <p>You completed all levels of PuzzlePlex!</p>
+        <button onclick="restartGame()">Play Again</button>
+    </div>
+
+    <script>
+        let currentLevel = 1;
+        const maxLevel = 5; // Number of levels
+        const tilesPerLevel = 8; // Number of tiles to match per level
+
+        // Function to start the game
+        function startGame() {
+            document.getElementById("title-screen").classList.remove("active");
+            document.getElementById("game-area").classList.add("active");
+            loadLevel();
+        }
+
+        // Function to load a level
+        function loadLevel() {
+            document.getElementById("level-number").innerText = currentLevel;
+            const puzzleBoard = document.getElementById("puzzle-board");
+            puzzleBoard.innerHTML = ''; // Clear previous tiles
+            document.getElementById("next-button").disabled = true; // Disable Next Level button
+            
+            // Generate a shuffled list of numbers for the puzzle
+            const numbers = Array.from({ length: tilesPerLevel }, (_, i) => i + 1).sort(() => Math.random() - 0.5);
+            
+            // Create tiles
+            numbers.forEach(num => {
+                const tile = document.createElement("div");
+                tile.className = "tile";
+                tile.innerText = num;
+                tile.onclick = () => selectTile(tile, num);
+                puzzleBoard.appendChild(tile);
+            });
+        }
+
+        // Function to handle tile selection and check if sorted
+        function selectTile(tile, num) {
+            const tiles = Array.from(document.getElementsByClassName("tile"));
+            const values = tiles.map(tile => parseInt(tile.innerText, 10));
+            
+            // Check if sorted in ascending order
+            if (isSorted(values)) {
+                document.getElementById("next-button").disabled = false; // Enable Next Level button
+            }
+        }
+
+        // Check if the tiles are in ascending order
+        function isSorted(arr) {
+            for (let i = 0; i < arr.length - 1; i++) {
+                if (arr[i] > arr[i + 1]) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        // Function to go to the next level
+        function nextLevel() {
+            if (currentLevel < maxLevel) {
+                currentLevel++;
+                loadLevel();
+            } else {
+                endGame();
+            }
+        }
+
+        // Function to end the game
+        function endGame() {
+            document.getElementById("game-area").classList.remove("active");
+            document.getElementById("game-over").classList.add("active");
+        }
+
+        // Function to restart the game
+        function restartGame() {
+            currentLevel = 1;
+            document.getElementById("game-over").classList.remove("active");
+            document.getElementById("title-screen").classList.add("active");
+        }
+    </script>
+
+</body>
+</html>
