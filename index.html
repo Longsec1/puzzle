@@ -15,11 +15,14 @@
             overflow: hidden; /* Prevent scrolling */
             background-color: #f0f0f0;
         }
-        .game-container {
+        .game-container, .welcome-container {
             display: flex;
             flex-direction: column;
             gap: 20px;
             align-items: center;
+        }
+        .game-container {
+            display: none;
         }
         .play-area {
             display: grid;
@@ -61,15 +64,23 @@
             font-size: 16px;
             cursor: pointer;
         }
+        .level-display {
+            font-size: 20px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
 
+<div class="welcome-container">
+    <div class="level-display">Current Level: <span id="currentLevel">1</span></div>
+    <button class="button" onclick="startGame()">Play Game</button>
+</div>
+
 <div class="game-container">
+    <div class="level-display">Level: <span id="gameLevel">1</span></div>
     <div class="play-area">
-        <!-- Top row with empty containers -->
         <div class="container-row" id="topRow"></div>
-        <!-- Bottom row with mixed-color squares -->
         <div class="container-row" id="bottomRow"></div>
     </div>
     <div class="controls">
@@ -83,9 +94,15 @@
     let suspendedSquare = null;
     let previousBeaker = null;
     let level = 1;
-    const maxBeakers = 8;
+    const maxBeakers = 4;
     const topRow = document.getElementById('topRow');
     const bottomRow = document.getElementById('bottomRow');
+
+    function startGame() {
+        document.querySelector('.welcome-container').style.display = 'none';
+        document.querySelector('.game-container').style.display = 'flex';
+        initGame();
+    }
 
     function createBeakers(count) {
         [topRow, bottomRow].forEach(row => row.innerHTML = '');
@@ -106,30 +123,35 @@
     }
 
     function initGame() {
-        const totalBeakers = Math.min(4 + Math.floor(level / 2), maxBeakers);
+        document.getElementById('gameLevel').textContent = level;
+        document.getElementById('currentLevel').textContent = level;
+
+        const beakersToFill = Math.min(2 + Math.floor(level / 2), maxBeakers);
         const totalColors = Math.min(4 + Math.floor(level / 3), colors.length);
         const squaresPerBeaker = Math.floor(6 + level * 1.5);
 
-        createBeakers(totalBeakers);
+        createBeakers(maxBeakers);
 
         const colorDistribution = [];
-        for (let i = 0; i < totalBeakers; i++) {
-            for (let j = 0; j < squaresPerBeaker / totalBeakers; j++) {
+        for (let i = 0; i < beakersToFill; i++) {
+            for (let j = 0; j < squaresPerBeaker / beakersToFill; j++) {
                 colorDistribution.push(colors[Math.floor(Math.random() * totalColors)]);
             }
         }
 
         shuffleArray(colorDistribution);
 
-        bottomRow.childNodes.forEach(beaker => {
-            for (let i = 0; i < squaresPerBeaker / totalBeakers; i++) {
-                if (colorDistribution.length) {
-                    const color = colorDistribution.pop();
-                    const square = document.createElement('div');
-                    square.classList.add('square');
-                    square.style.backgroundColor = color;
-                    square.dataset.color = color;
-                    beaker.appendChild(square);
+        bottomRow.childNodes.forEach((beaker, index) => {
+            if (index < beakersToFill) {
+                for (let i = 0; i < squaresPerBeaker / beakersToFill; i++) {
+                    if (colorDistribution.length) {
+                        const color = colorDistribution.pop();
+                        const square = document.createElement('div');
+                        square.classList.add('square');
+                        square.style.backgroundColor = color;
+                        square.dataset.color = color;
+                        beaker.appendChild(square);
+                    }
                 }
             }
         });
@@ -184,9 +206,7 @@
             [array[i], array[j]] = [array[j], array[i]];
         }
     }
-
-    initGame();
 </script>
 
 </body>
-    </html>
+                                                                                  </html>
