@@ -118,18 +118,15 @@
     }
 
     function selectSquare(beaker) {
-        if (beaker.lastChild && beaker.children.length <= 4) {
+        if (suspendedSquare) {
+            moveSquare(suspendedSquare, beaker);
+            suspendedSquare.classList.remove('suspended');
+            suspendedSquare = null;
+        } else if (beaker.lastChild) {
             const topSquare = beaker.lastChild;
-
-            if (suspendedSquare) {
-                moveSquare(suspendedSquare, beaker);
-                suspendedSquare.classList.remove('suspended');
-                suspendedSquare = null;
-            } else {
-                suspendedSquare = topSquare;
-                topSquare.classList.add('suspended');
-                previousBeaker = beaker;
-            }
+            suspendedSquare = topSquare;
+            topSquare.classList.add('suspended');
+            previousBeaker = beaker;
         }
     }
 
@@ -165,4 +162,4 @@
 </script>
 
 </body>
-    </html>
+                </html>
