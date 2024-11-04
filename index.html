@@ -66,54 +66,55 @@
 <body>
 
 <div class="game-container">
-    <div class="play-area">
-        <!-- Top row with empty containers -->
-        <div class="container-row">
-            <div class="beaker" id="beakerTop1"></div>
-            <div class="beaker" id="beakerTop2"></div>
-            <div class="beaker" id="beakerTop3"></div>
-            <div class="beaker" id="beakerTop4"></div>
-        </div>
-        <!-- Bottom row with mixed-color squares -->
-        <div class="container-row">
-            <div class="beaker" id="beakerBottom1"></div>
-            <div class="beaker" id="beakerBottom2"></div>
-            <div class="beaker" id="beakerBottom3"></div>
-            <div class="beaker" id="beakerBottom4"></div>
-        </div>
-    </div>
+    <div class="play-area" id="playArea"></div>
     <div class="controls">
         <button class="button" onclick="resetGame()">Reset Game</button>
     </div>
 </div>
 
 <script>
-    const colors = ['#FF5733', '#33FF57', '#3357FF', '#FF33A1'];
-    const beakerElements = [
-        document.getElementById('beakerBottom1'),
-        document.getElementById('beakerBottom2'),
-        document.getElementById('beakerBottom3'),
-        document.getElementById('beakerBottom4')
-    ];
-    const topBeakerElements = [
-        document.getElementById('beakerTop1'),
-        document.getElementById('beakerTop2'),
-        document.getElementById('beakerTop3'),
-        document.getElementById('beakerTop4')
-    ];
+    const colors = ['#FF5733', '#33FF57', '#3357FF', '#FF33A1', '#FF8C33', '#57FF33', '#FF3333', '#33FFFF'];
+    let currentLevel = 1;
+    let beakerElements = [];
     let suspendedSquare = null;
     let previousBeaker = null;
 
     function initGame() {
+        beakerElements = [];
+        const playArea = document.getElementById('playArea');
+        playArea.innerHTML = '';
+
+        const numBeakers = 4 + Math.floor(currentLevel / 2);
+        const numColors = Math.min(4 + currentLevel, colors.length);
+        const beakersPerRow = Math.ceil(numBeakers / 2);
+
+        for (let i = 0; i < 2; i++) {
+            const row = document.createElement('div');
+            row.classList.add('container-row');
+            for (let j = 0; j < beakersPerRow; j++) {
+                const beaker = document.createElement('div');
+                beaker.classList.add('beaker');
+                row.appendChild(beaker);
+                beakerElements.push(beaker);
+            }
+            playArea.appendChild(row);
+        }
+
+        const totalSquares = numBeakers * 4;
+        const colorsUsed = colors.slice(0, numColors);
+        const shuffledSquares = shuffleArray(new Array(totalSquares).fill().map((_, i) => colorsUsed[i % numColors]));
+
+        let currentSquareIndex = 0;
         beakerElements.forEach(beaker => {
             for (let i = 0; i < 4; i++) {
-                const color = colors[Math.floor(Math.random() * colors.length)];
+                const color = shuffledSquares[currentSquareIndex++];
                 const square = document.createElement('div');
                 square.classList.add('square');
                 square.style.backgroundColor = color;
                 square.dataset.color = color;
                 beaker.appendChild(square);
             }
+            beaker.onclick = () => selectSquare(beaker);
         });
     }
 
@@ -140,26 +141,33 @@
     }
 
     function resetGame() {
-        [...beakerElements, ...topBeakerElements].forEach(beaker => {
-            beaker.innerHTML = '';
-        });
         suspendedSquare = null;
         initGame();
     }
 
     function checkWinCondition() {
-        const isWin = [...beakerElements, ...topBeakerElements].every(beaker => {
+        const isWin = beakerElements.every(beaker => {
             const squares = Array.from(beaker.children);
-            return squares.length === 4 && squares.every(s => s.dataset.color === squares[0].dataset.color);
+            return squares.length === 0 || squares.every(s => s.dataset.color === squares[0].dataset.color);
         });
-        if (isWin) alert("Congratulations! You've completed the level!");
+
+        if (isWin) {
+            alert(`Congratulations! You've completed Level ${currentLevel}!`);
+            currentLevel++;
+            initGame();
+        }
     }
 
-    beakerElements.forEach(beaker => beaker.onclick = () => selectSquare(beaker));
-    topBeakerElements.forEach(beaker => beaker.onclick = () => selectSquare(beaker));
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
 
     initGame();
 </script>
 
 </body>
-                </html>
+            </html>
