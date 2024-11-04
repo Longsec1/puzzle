@@ -66,55 +66,72 @@
 <body>
 
 <div class="game-container">
-    <div class="play-area" id="playArea"></div>
+    <div class="play-area">
+        <!-- Top row with empty containers -->
+        <div class="container-row" id="topRow"></div>
+        <!-- Bottom row with mixed-color squares -->
+        <div class="container-row" id="bottomRow"></div>
+    </div>
     <div class="controls">
         <button class="button" onclick="resetGame()">Reset Game</button>
+        <button class="button" onclick="nextLevel()">Next Level</button>
     </div>
 </div>
 
 <script>
-    const colors = ['#FF5733', '#33FF57', '#3357FF', '#FF33A1', '#FF8C33', '#57FF33', '#FF3333', '#33FFFF'];
-    let currentLevel = 1;
-    let beakerElements = [];
+    const colors = ['#FF5733', '#33FF57', '#3357FF', '#FF33A1', '#FFFF33', '#33FFFF', '#FF6633'];
     let suspendedSquare = null;
     let previousBeaker = null;
+    let level = 1;
+    const maxBeakers = 8;
+    const topRow = document.getElementById('topRow');
+    const bottomRow = document.getElementById('bottomRow');
+
+    function createBeakers(count) {
+        [topRow, bottomRow].forEach(row => row.innerHTML = '');
+        for (let i = 0; i < count; i++) {
+            const topBeaker = document.createElement('div');
+            topBeaker.classList.add('beaker');
+            topBeaker.id = `beakerTop${i + 1}`;
+            topBeaker.onclick = () => selectSquare(topBeaker);
+
+            const bottomBeaker = document.createElement('div');
+            bottomBeaker.classList.add('beaker');
+            bottomBeaker.id = `beakerBottom${i + 1}`;
+            bottomBeaker.onclick = () => selectSquare(bottomBeaker);
+
+            topRow.appendChild(topBeaker);
+            bottomRow.appendChild(bottomBeaker);
+        }
+    }
 
     function initGame() {
-        beakerElements = [];
-        const playArea = document.getElementById('playArea');
-        playArea.innerHTML = '';
+        const totalBeakers = Math.min(4 + Math.floor(level / 2), maxBeakers);
+        const totalColors = Math.min(4 + Math.floor(level / 3), colors.length);
+        const squaresPerBeaker = Math.floor(6 + level * 1.5);
 
-        const numBeakers = 4 + Math.floor(currentLevel / 2);
-        const numColors = Math.min(4 + currentLevel, colors.length);
-        const beakersPerRow = Math.ceil(numBeakers / 2);
+        createBeakers(totalBeakers);
 
-        for (let i = 0; i < 2; i++) {
-            const row = document.createElement('div');
-            row.classList.add('container-row');
-            for (let j = 0; j < beakersPerRow; j++) {
-                const beaker = document.createElement('div');
-                beaker.classList.add('beaker');
-                row.appendChild(beaker);
-                beakerElements.push(beaker);
+        const colorDistribution = [];
+        for (let i = 0; i < totalBeakers; i++) {
+            for (let j = 0; j < squaresPerBeaker / totalBeakers; j++) {
+                colorDistribution.push(colors[Math.floor(Math.random() * totalColors)]);
             }
-            playArea.appendChild(row);
         }
 
-        const totalSquares = numBeakers * 4;
-        const colorsUsed = colors.slice(0, numColors);
-        const shuffledSquares = shuffleArray(new Array(totalSquares).fill().map((_, i) => colorsUsed[i % numColors]));
+        shuffleArray(colorDistribution);
 
-        let currentSquareIndex = 0;
-        beakerElements.forEach(beaker => {
-            for (let i = 0; i < 4; i++) {
-                const color = shuffledSquares[currentSquareIndex++];
-                const square = document.createElement('div');
-                square.classList.add('square');
-                square.style.backgroundColor = color;
-                square.dataset.color = color;
-                beaker.appendChild(square);
+        bottomRow.childNodes.forEach(beaker => {
+            for (let i = 0; i < squaresPerBeaker / totalBeakers; i++) {
+                if (colorDistribution.length) {
+                    const color = colorDistribution.pop();
+                    const square = document.createElement('div');
+                    square.classList.add('square');
+                    square.style.backgroundColor = color;
+                    square.dataset.color = color;
+                    beaker.appendChild(square);
+                }
             }
-            beaker.onclick = () => selectSquare(beaker);
         });
     }
 
@@ -145,16 +162,19 @@
         initGame();
     }
 
-    function checkWinCondition() {
-        const isWin = beakerElements.every(beaker => {
-            const squares = Array.from(beaker.children);
-            return squares.length === 0 || squares.every(s => s.dataset.color === squares[0].dataset.color);
-        });
+    function nextLevel() {
+        level++;
+        resetGame();
+    }
 
+    function checkWinCondition() {
+        const isWin = Array.from(document.querySelectorAll('.beaker')).every(beaker => {
+            const squares = Array.from(beaker.children);
+            return squares.every(s => s.dataset.color === (squares[0]?.dataset.color || null));
+        });
         if (isWin) {
-            alert(`Congratulations! You've completed Level ${currentLevel}!`);
-            currentLevel++;
-            initGame();
+            alert(`Congratulations! You've completed level ${level}!`);
+            nextLevel();
         }
     }
 
@@ -163,11 +183,10 @@
             const j = Math.floor(Math.random() * (i + 1));
             [array[i], array[j]] = [array[j], array[i]];
         }
-        return array;
     }
 
     initGame();
 </script>
 
 </body>
-            </html>
+    </html>
