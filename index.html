@@ -220,23 +220,28 @@
             return squares.length === 0 || (squares.length === 4 && squares.every(s => s.dataset.color === squares[0].dataset.color));
         });
 
-        const partialBeakersUnfillable = beakers.every(beaker => {
+        const noFurtherMoves = beakers.every(beaker => {
             const squares = Array.from(beaker.children);
             if (squares.length > 0 && squares.length < 4) {
                 const color = squares[0].dataset.color;
                 const potentialFillingSquares = beakers.flatMap(otherBeaker => 
                     otherBeaker !== beaker ? Array.from(otherBeaker.children).filter(s => s.dataset.color === color) : []
                 );
-                return potentialFillingSquares.length + squares.length < 4;
+                return potentialFillingSquares.length + squares.length >= 4;
             }
             return true;
         });
 
-        if (allBeakersFilledCorrectly || partialBeakersUnfillable) {
+        const containsMixedColors = beakers.some(beaker => {
+            const squares = Array.from(beaker.children);
+            return squares.length > 0 && !squares.every(s => s.dataset.color === squares[0].dataset.color);
+        });
+
+        if ((allBeakersFilledCorrectly || noFurtherMoves) && !containsMixedColors) {
             setTimeout(() => {
                 alert(`Congratulations! You've completed level ${level}!`);
                 nextLevel();
-            }, 100);
+            }, 200);
         }
     }
 
@@ -249,4 +254,4 @@
 </script>
 
 </body>
-    </html>
+                                                  </html>
