@@ -85,6 +85,7 @@
     </div>
     <div class="controls">
         <button class="button" onclick="resetGame()">Reset Game</button>
+        <button class="button" onclick="previousLevel()">Previous Level</button>
         <button class="button" onclick="nextLevel()">Next Level</button>
     </div>
 </div>
@@ -97,6 +98,7 @@
     const maxBeakers = 4;
     const topRow = document.getElementById('topRow');
     const bottomRow = document.getElementById('bottomRow');
+    let initialLayout = [];
 
     function startGame() {
         document.querySelector('.welcome-container').style.display = 'none';
@@ -143,6 +145,7 @@
 
         bottomRow.childNodes.forEach((beaker, index) => {
             if (index < beakersToFill) {
+                const layout = [];
                 for (let i = 0; i < squaresPerBeaker / beakersToFill; i++) {
                     if (colorDistribution.length) {
                         const color = colorDistribution.pop();
@@ -151,9 +154,25 @@
                         square.style.backgroundColor = color;
                         square.dataset.color = color;
                         beaker.appendChild(square);
+                        layout.push(color);
                     }
                 }
+                initialLayout.push(layout);
             }
+        });
+    }
+
+    function resetGame() {
+        [topRow, bottomRow].forEach(row => row.innerHTML = '');
+        initialLayout.forEach((layout, index) => {
+            const beaker = document.getElementById(`beakerBottom${index + 1}`);
+            layout.forEach(color => {
+                const square = document.createElement('div');
+                square.classList.add('square');
+                square.style.backgroundColor = color;
+                square.dataset.color = color;
+                beaker.appendChild(square);
+            });
         });
     }
 
@@ -179,22 +198,43 @@
         }
     }
 
-    function resetGame() {
-        suspendedSquare = null;
+    function nextLevel() {
+        level++;
+        initialLayout = [];
         initGame();
     }
 
-    function nextLevel() {
-        level++;
-        resetGame();
+    function previousLevel() {
+        if (level > 1) {
+            level--;
+            initialLayout = [];
+            initGame();
+        }
     }
 
     function checkWinCondition() {
-        const isWin = Array.from(document.querySelectorAll('.beaker')).every(beaker => {
+        const beakers = Array.from(document.querySelectorAll('.beaker'));
+        const isWin = beakers.every(beaker => {
             const squares = Array.from(beaker.children);
-            return squares.every(s => s.dataset.color === (squares[0]?.dataset.color || null));
+            return squares.length === 0 || (squares.length === 4 && squares.every(s => s.dataset.color === squares[0].dataset.color));
         });
-        if (isWin) {
+
+        const isLoss = beakers.some(beaker => {
+            const squares = Array.from(beaker.children);
+            if (squares.length > 0 && squares.length < 4) {
+                const color = squares[0].dataset.color;
+                return beakers.some(otherBeaker => {
+                    if (otherBeaker !== beaker) {
+                        const otherSquares = Array.from(otherBeaker.children);
+                        return otherSquares.some(s => s.dataset.color === color);
+                    }
+                    return false;
+                });
+            }
+            return false;
+        });
+
+        if (isWin && !isLoss) {
             alert(`Congratulations! You've completed level ${level}!`);
             nextLevel();
         }
@@ -209,4 +249,4 @@
 </script>
 
 </body>
-                                                                                  </html>
+                                                  </html>
