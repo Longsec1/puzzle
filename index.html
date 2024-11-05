@@ -214,27 +214,25 @@
 
     function checkWinCondition() {
         const beakers = Array.from(document.querySelectorAll('.beaker'));
-        const isWin = beakers.every(beaker => {
+
+        const allBeakersFilledCorrectly = beakers.every(beaker => {
             const squares = Array.from(beaker.children);
             return squares.length === 0 || (squares.length === 4 && squares.every(s => s.dataset.color === squares[0].dataset.color));
         });
 
-        const isLoss = beakers.some(beaker => {
+        const allPartialBeakersCanBeFilled = beakers.every(beaker => {
             const squares = Array.from(beaker.children);
             if (squares.length > 0 && squares.length < 4) {
                 const color = squares[0].dataset.color;
-                return beakers.some(otherBeaker => {
-                    if (otherBeaker !== beaker) {
-                        const otherSquares = Array.from(otherBeaker.children);
-                        return otherSquares.some(s => s.dataset.color === color);
-                    }
-                    return false;
-                });
+                const potentialFillingSquares = beakers.flatMap(otherBeaker => 
+                    otherBeaker !== beaker ? Array.from(otherBeaker.children).filter(s => s.dataset.color === color) : []
+                );
+                return potentialFillingSquares.length + squares.length >= 4;
             }
-            return false;
+            return true;
         });
 
-        if (isWin && !isLoss) {
+        if (allBeakersFilledCorrectly || !allPartialBeakersCanBeFilled) {
             alert(`Congratulations! You've completed level ${level}!`);
             nextLevel();
         }
@@ -249,4 +247,4 @@
 </script>
 
 </body>
-                                                  </html>
+    </html>
