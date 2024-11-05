@@ -75,6 +75,7 @@
         <div class="container-row" id="topRow"></div>
         <div class="container-row" id="bottomRow"></div>
     </div>
+    <button class="button" onclick="returnHome()">Return to Home</button>
 </div>
 
 <script>
@@ -91,6 +92,11 @@
         document.querySelector('.welcome-container').style.display = 'none';
         document.querySelector('.game-container').style.display = 'flex';
         initGame();
+    }
+
+    function returnHome() {
+        document.querySelector('.game-container').style.display = 'none';
+        document.querySelector('.welcome-container').style.display = 'flex';
     }
 
     function createBeakers(count) {
