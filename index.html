@@ -12,7 +12,7 @@
             align-items: center;
             height: 100vh;
             margin: 0;
-            overflow: hidden; /* Prevent scrolling */
+            overflow: hidden;
             background-color: #f0f0f0;
         }
         .game-container, .welcome-container {
@@ -76,6 +76,7 @@
         <div class="container-row" id="bottomRow"></div>
     </div>
     <button class="button" onclick="returnHome()">Return to Home</button>
+    <button class="button" onclick="initGame()">Restart Level</button>
 </div>
 
 <script>
@@ -86,7 +87,6 @@
     const maxBeakers = 4;
     const topRow = document.getElementById('topRow');
     const bottomRow = document.getElementById('bottomRow');
-    let initialLayout = [];
 
     function startGame() {
         document.querySelector('.welcome-container').style.display = 'none';
@@ -104,12 +104,10 @@
         for (let i = 0; i < count; i++) {
             const topBeaker = document.createElement('div');
             topBeaker.classList.add('beaker');
-            topBeaker.id = `beakerTop${i + 1}`;
             topBeaker.onclick = () => selectSquare(topBeaker);
 
             const bottomBeaker = document.createElement('div');
             bottomBeaker.classList.add('beaker');
-            bottomBeaker.id = `beakerBottom${i + 1}`;
             bottomBeaker.onclick = () => selectSquare(bottomBeaker);
 
             topRow.appendChild(topBeaker);
@@ -123,34 +121,27 @@
 
         const beakersToFill = Math.min(2 + Math.floor(level / 2), maxBeakers);
         const totalColors = Math.min(4 + Math.floor(level / 3), colors.length);
-        const squaresPerBeaker = Math.floor(6 + level * 1.5);
+        const squaresPerBeaker = 4;
 
         createBeakers(maxBeakers);
-
         const colorDistribution = [];
+
         for (let i = 0; i < beakersToFill; i++) {
-            for (let j = 0; j < squaresPerBeaker / beakersToFill; j++) {
+            for (let j = 0; j < squaresPerBeaker; j++) {
                 colorDistribution.push(colors[Math.floor(Math.random() * totalColors)]);
             }
         }
 
         shuffleArray(colorDistribution);
+        const beakers = Array.from(bottomRow.children);
 
-        bottomRow.childNodes.forEach((beaker, index) => {
-            if (index < beakersToFill) {
-                const layout = [];
-                for (let i = 0; i < squaresPerBeaker / beakersToFill; i++) {
-                    if (colorDistribution.length) {
-                        const color = colorDistribution.pop();
-                        const square = document.createElement('div');
-                        square.classList.add('square');
-                        square.style.backgroundColor = color;
-                        square.dataset.color = color;
-                        beaker.appendChild(square);
-                        layout.push(color);
-                    }
-                }
-                initialLayout.push(layout);
+        beakers.slice(0, beakersToFill).forEach(beaker => {
+            for (let i = 0; i < squaresPerBeaker; i++) {
+                const square = document.createElement('div');
+                square.classList.add('square');
+                square.style.backgroundColor = colorDistribution.pop();
+                square.dataset.color = square.style.backgroundColor;
+                beaker.appendChild(square);
             }
         });
     }
@@ -161,9 +152,8 @@
             suspendedSquare.classList.remove('suspended');
             suspendedSquare = null;
         } else if (beaker.lastChild) {
-            const topSquare = beaker.lastChild;
-            suspendedSquare = topSquare;
-            topSquare.classList.add('suspended');
+            suspendedSquare = beaker.lastChild;
+            suspendedSquare.classList.add('suspended');
             previousBeaker = beaker;
         }
     }
@@ -179,33 +169,15 @@
 
     function checkWinCondition() {
         const beakers = Array.from(document.querySelectorAll('.beaker'));
-
         const allBeakersCorrect = beakers.every(beaker => {
             const squares = Array.from(beaker.children);
             return squares.length === 0 || (squares.length === 4 && squares.every(s => s.dataset.color === squares[0].dataset.color));
         });
 
-        const noMovesLeft = beakers.every(beaker => {
-            const squares = Array.from(beaker.children);
-            if (squares.length > 0 && squares.length < 4) {
-                const color = squares[0].dataset.color;
-                const fillingSquares = beakers.flatMap(otherBeaker =>
-                    otherBeaker !== beaker ? Array.from(otherBeaker.children).filter(s => s.dataset.color === color) : []
-                );
-                return fillingSquares.length + squares.length >= 4;
-            }
-            return true;
-        });
-
-        if ((allBeakersCorrect || noMovesLeft) && !beakers.some(beaker => {
-            const squares = Array.from(beaker.children);
-            return squares.length > 0 && !squares.every(s => s.dataset.color === squares[0].dataset.color);
-        })) {
-            setTimeout(() => {
-                alert(`Congratulations! You've completed level ${level}!`);
-                level++;
-                initGame();
-            }, 200);
+        if (allBeakersCorrect) {
+            alert(`Congratulations! You've completed level ${level}!`);
+            level++;
+            initGame();
         }
     }
 
