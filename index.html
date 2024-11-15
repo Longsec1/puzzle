@@ -102,16 +102,10 @@
     function createBeakers(count) {
         [topRow, bottomRow].forEach(row => row.innerHTML = '');
         for (let i = 0; i < count; i++) {
-            const topBeaker = document.createElement('div');
-            topBeaker.classList.add('beaker');
-            topBeaker.onclick = () => selectSquare(topBeaker);
-
-            const bottomBeaker = document.createElement('div');
-            bottomBeaker.classList.add('beaker');
-            bottomBeaker.onclick = () => selectSquare(bottomBeaker);
-
-            topRow.appendChild(topBeaker);
-            bottomRow.appendChild(bottomBeaker);
+            const beaker = document.createElement('div');
+            beaker.classList.add('beaker');
+            beaker.onclick = () => selectSquare(beaker);
+            i < count / 2 ? topRow.appendChild(beaker) : bottomRow.appendChild(beaker);
         }
     }
 
@@ -121,7 +115,7 @@
 
         const beakersToFill = Math.min(2 + Math.floor(level / 2), maxBeakers);
         const totalColors = Math.min(4 + Math.floor(level / 3), colors.length);
-        const squaresPerBeaker = Math.min(4, 2 + level); // Allow levels with less than 4 squares per beaker
+        const squaresPerBeaker = 4;
 
         createBeakers(maxBeakers);
         const colorDistribution = [];
@@ -133,10 +127,10 @@
         }
 
         shuffleArray(colorDistribution);
-        const beakers = Array.from(bottomRow.children);
+        const beakers = Array.from(document.querySelectorAll('.beaker'));
 
         beakers.slice(0, beakersToFill).forEach(beaker => {
-            for (let i = 0; i < squaresPerBeaker; i++) {
+            while (colorDistribution.length && beaker.children.length < squaresPerBeaker) {
                 const square = document.createElement('div');
                 square.classList.add('square');
                 square.style.backgroundColor = colorDistribution.pop();
@@ -169,12 +163,15 @@
 
     function checkWinCondition() {
         const beakers = Array.from(document.querySelectorAll('.beaker'));
-        const allBeakersCorrect = beakers.every(beaker => {
-            const squares = Array.from(beaker.children);
-            return squares.length === 0 || squares.every(s => s.dataset.color === squares[0].dataset.color);
-        });
 
-        if (allBeakersCorrect) {
+        const isLevelComplete = beakers.every(beaker => {
+            const squares = Array.from(beaker.children);
+            if (squares.length === 0) return true;
+            const color = squares[0].dataset.color;
+            return squares.every(s => s.dataset.color === color);
+        }) && beakers.every(beaker => beaker.children.length === 0 || beaker.children.length === 4);
+
+        if (isLevelComplete) {
             alert(`Congratulations! You've completed level ${level}!`);
             level++;
             initGame();
