@@ -20,6 +20,14 @@
             height: 100vh;
             background: linear-gradient(135deg, #89f7fe, #66a6ff);
             overflow: hidden;
+            animation: gradientAnimation 15s ease infinite;
+        }
+
+        /* Gradient Animation */
+        @keyframes gradientAnimation {
+            0% { background: linear-gradient(135deg, #89f7fe, #66a6ff); }
+            50% { background: linear-gradient(135deg, #f6d365, #ff5e62); }
+            100% { background: linear-gradient(135deg, #89f7fe, #66a6ff); }
         }
 
         /* Containers */
@@ -28,6 +36,8 @@
             flex-direction: column;
             gap: 20px;
             align-items: center;
+            opacity: 1;
+            transition: opacity 0.5s ease;
         }
 
         .game-container {
@@ -45,49 +55,60 @@
             gap: 15px;
         }
 
-        /* Beakers and Squares */
+        /* Beakers */
         .beaker {
             width: 70px;
             height: 180px;
-            border: 2px solid #222;
             border-radius: 10px;
             display: flex;
             flex-direction: column-reverse;
             justify-content: flex-start;
             align-items: center;
-            background: rgba(255, 255, 255, 0.7);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.3));
+            box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.1), 0 6px 12px rgba(0, 0, 0, 0.2);
             padding: 10px;
-            transition: transform 0.3s ease;
+            position: relative;
+            overflow: hidden;
         }
 
-        .beaker:hover {
-            transform: scale(1.05);
+        /* Beaker Reflection */
+        .beaker::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.5), transparent);
+            opacity: 0.3;
         }
 
+        /* Squares */
         .square {
             width: 60px;
             height: 30px;
             border-radius: 5px;
-            cursor: pointer;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
+            animation: bounceIn 0.5s ease;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
         }
 
+        /* Bounce Effect */
+        @keyframes bounceIn {
+            0% { transform: scale(0.8); }
+            60% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        /* Suspended Square Effect */
         .suspended {
-            transform: translateY(-50px);
-            border: 2px solid #000;
-            z-index: 1;
+            transform: translateY(-50px) scale(1.05);
+            border: 2px solid #fffa;
+            z-index: 2;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
         }
 
-        /* UI Elements */
-        .level-display {
-            font-size: 24px;
-            font-weight: bold;
-            color: #fff;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-        }
-
+        /* Buttons */
         .button {
             padding: 12px 25px;
             font-size: 16px;
@@ -97,7 +118,6 @@
             border: none;
             border-radius: 8px;
             cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
             transition: background-color 0.3s ease, transform 0.2s ease;
         }
 
@@ -106,8 +126,11 @@
             transform: scale(1.05);
         }
 
-        .button:active {
-            transform: scale(0.95);
+        /* UI Elements */
+        .level-display {
+            font-size: 24px;
+            font-weight: bold;
+            color: #fff;
         }
     </style>
 </head>
@@ -116,7 +139,7 @@
 <div class="welcome-container">
     <div class="level-display">Welcome to ColorStack!</div>
     <div class="level-display">Current Level: <span id="currentLevel">1</span></div>
-    <button class="button" onclick="startGame()">Play Game</button>
+    <button class="button" onclick="startGame()">▶️ Play</button>
 </div>
 
 <div class="game-container">
@@ -125,8 +148,8 @@
         <div class="container-row" id="topRow"></div>
         <div class="container-row" id="bottomRow"></div>
     </div>
-    <button class="button" onclick="returnHome()">Return to Home</button>
-    <button class="button" onclick="initGame()">Restart Level</button>
+    <button class="button" onclick="returnHome()">🏠 Home</button>
+    <button class="button" onclick="initGame()">🔄 Restart</button>
 </div>
 
 <script>
@@ -138,20 +161,17 @@
     const topRow = document.getElementById('topRow');
     const bottomRow = document.getElementById('bottomRow');
 
-    // Start Game Function
     function startGame() {
         document.querySelector('.welcome-container').style.display = 'none';
         document.querySelector('.game-container').style.display = 'flex';
         initGame();
     }
 
-    // Return to Home Function
     function returnHome() {
         document.querySelector('.game-container').style.display = 'none';
         document.querySelector('.welcome-container').style.display = 'flex';
     }
 
-    // Create Beakers Function
     function createBeakers(count) {
         [topRow, bottomRow].forEach(row => row.innerHTML = '');
         for (let i = 0; i < count; i++) {
@@ -162,43 +182,32 @@
         }
     }
 
-    // Initialize Game Function
     function initGame() {
         document.getElementById('gameLevel').textContent = level;
         document.getElementById('currentLevel').textContent = level;
-
         const beakersToFill = Math.min(2 + Math.floor(level / 2), maxBeakers);
-        const totalColors = Math.min(4 + Math.floor(level / 3), colors.length);
-        const squaresPerBeaker = Math.min(4, 2 + level);
-
         createBeakers(maxBeakers);
 
-        const colorDistribution = [];
+        const colorsToUse = colors.slice(0, beakersToFill);
+        let colorPool = colorsToUse.flatMap(color => Array(4).fill(color));
+
+        shuffleArray(colorPool);
+        const beakers = Array.from(document.querySelectorAll('.beaker'));
+
         for (let i = 0; i < beakersToFill; i++) {
-            for (let j = 0; j < squaresPerBeaker; j++) {
-                colorDistribution.push(colors[Math.floor(Math.random() * totalColors)]);
-            }
-        }
-
-        shuffleArray(colorDistribution);
-        const beakers = Array.from(bottomRow.children);
-
-        beakers.slice(0, beakersToFill).forEach(beaker => {
-            for (let i = 0; i < squaresPerBeaker; i++) {
+            for (let j = 0; j < 4; j++) {
                 const square = document.createElement('div');
                 square.classList.add('square');
-                square.style.backgroundColor = colorDistribution.pop();
+                square.style.backgroundColor = colorPool.pop();
                 square.dataset.color = square.style.backgroundColor;
                 beaker.appendChild(square);
             }
-        });
+        }
     }
 
-    // Square Selection Function
     function selectSquare(beaker) {
         if (suspendedSquare) {
             moveSquare(suspendedSquare, beaker);
-            suspendedSquare.classList.remove('suspended');
             suspendedSquare = null;
         } else if (beaker.lastChild) {
             suspendedSquare = beaker.lastChild;
@@ -207,36 +216,11 @@
         }
     }
 
-    // Move Square Function
     function moveSquare(square, targetBeaker) {
-        if ((!targetBeaker.lastChild || targetBeaker.lastChild.dataset.color === square.dataset.color) && targetBeaker.children.length < 4) {
+        if (targetBeaker.children.length < 4) {
             targetBeaker.appendChild(square);
-            checkWinCondition();
         } else {
             previousBeaker.appendChild(square);
-        }
-    }
-
-    // Win Condition Check
-    function checkWinCondition() {
-        const beakers = Array.from(document.querySelectorAll('.beaker'));
-        const allCorrect = beakers.every(beaker => {
-            const squares = Array.from(beaker.children);
-            return squares.length === 0 || squares.every(s => s.dataset.color === squares[0].dataset.color);
-        });
-
-        if (allCorrect) {
-            alert(`Level ${level} complete!`);
-            level++;
-            initGame();
-        }
-    }
-
-    // Shuffle Array
-    function shuffleArray(array) {
-        for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
         }
     }
 </script>
