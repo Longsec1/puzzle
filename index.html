@@ -60,6 +60,11 @@
             font-size: 20px;
             font-weight: bold;
         }
+        .button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -88,17 +93,20 @@
     const topRow = document.getElementById('topRow');
     const bottomRow = document.getElementById('bottomRow');
 
+    // Start Game Function
     function startGame() {
         document.querySelector('.welcome-container').style.display = 'none';
         document.querySelector('.game-container').style.display = 'flex';
         initGame();
     }
 
+    // Return to Home Function
     function returnHome() {
         document.querySelector('.game-container').style.display = 'none';
         document.querySelector('.welcome-container').style.display = 'flex';
     }
 
+    // Create Beakers Function
     function createBeakers(count) {
         [topRow, bottomRow].forEach(row => row.innerHTML = '');
         for (let i = 0; i < count; i++) {
@@ -109,6 +117,7 @@
         }
     }
 
+    // Initialize Game Function
     function initGame() {
         document.getElementById('gameLevel').textContent = level;
         document.getElementById('currentLevel').textContent = level;
@@ -118,8 +127,8 @@
         const squaresPerBeaker = Math.min(4, 2 + level);
 
         createBeakers(maxBeakers);
-        const colorDistribution = [];
 
+        const colorDistribution = [];
         for (let i = 0; i < beakersToFill; i++) {
             for (let j = 0; j < squaresPerBeaker; j++) {
                 colorDistribution.push(colors[Math.floor(Math.random() * totalColors)]);
@@ -138,11 +147,9 @@
                 beaker.appendChild(square);
             }
         });
-
-        autoArrange();
-        checkWinCondition();
     }
 
+    // Select Square Function
     function selectSquare(beaker) {
         if (suspendedSquare) {
             moveSquare(suspendedSquare, beaker);
@@ -155,38 +162,17 @@
         }
     }
 
+    // Move Square Function
     function moveSquare(square, targetBeaker) {
         if ((!targetBeaker.lastChild || targetBeaker.lastChild.dataset.color === square.dataset.color) && targetBeaker.children.length < 4) {
             targetBeaker.appendChild(square);
-            autoArrange();
             checkWinCondition();
         } else {
             previousBeaker.appendChild(square);
         }
     }
 
-    function autoArrange() {
-        const beakers = Array.from(document.querySelectorAll('.beaker'));
-        let moved = true;
-
-        while (moved) {
-            moved = false;
-            beakers.forEach(beaker => {
-                const squares = Array.from(beaker.children);
-                const color = squares.length ? squares[0].dataset.color : null;
-
-                beakers.forEach(targetBeaker => {
-                    if (targetBeaker !== beaker &&
-                        targetBeaker.children.length < 4 &&
-                        (!targetBeaker.lastChild || targetBeaker.lastChild.dataset.color === color)) {
-                        beaker.lastChild && targetBeaker.appendChild(beaker.lastChild);
-                        moved = true;
-                    }
-                });
-            });
-        }
-    }
-
+    // Check Win Condition
     function checkWinCondition() {
         const beakers = Array.from(document.querySelectorAll('.beaker'));
         const allCorrect = beakers.every(beaker => {
@@ -201,6 +187,7 @@
         }
     }
 
+    // Shuffle Array Function
     function shuffleArray(array) {
         for (let i = array.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
