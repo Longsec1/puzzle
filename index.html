@@ -5,71 +5,116 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ColorStack</title>
     <style>
+        /* Basic Reset */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            margin: 0;
+            background: linear-gradient(135deg, #89f7fe, #66a6ff);
             overflow: hidden;
-            background-color: #f0f0f0;
         }
+
+        /* Containers */
         .game-container, .welcome-container {
             display: flex;
             flex-direction: column;
             gap: 20px;
             align-items: center;
         }
+
         .game-container {
             display: none;
         }
+
         .play-area {
             display: grid;
             grid-template-rows: 1fr 1fr;
             gap: 20px;
         }
+
         .container-row {
             display: flex;
-            gap: 10px;
+            gap: 15px;
         }
+
+        /* Beakers and Squares */
         .beaker {
-            width: 60px;
-            height: 120px;
-            border: 2px solid #333;
+            width: 70px;
+            height: 180px;
+            border: 2px solid #222;
+            border-radius: 10px;
             display: flex;
             flex-direction: column-reverse;
             justify-content: flex-start;
             align-items: center;
-            background-color: #fff;
-            padding: 5px;
+            background: rgba(255, 255, 255, 0.7);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            transition: transform 0.3s ease;
         }
+
+        .beaker:hover {
+            transform: scale(1.05);
+        }
+
         .square {
-            width: 50px;
-            height: 25px;
-            margin: 3px 0;
+            width: 60px;
+            height: 30px;
+            border-radius: 5px;
             cursor: pointer;
-            transition: transform 0.2s ease;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
         }
+
         .suspended {
-            transform: translateY(-40px);
+            transform: translateY(-50px);
             border: 2px solid #000;
             z-index: 1;
         }
+
+        /* UI Elements */
         .level-display {
-            font-size: 20px;
+            font-size: 24px;
             font-weight: bold;
+            color: #fff;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
         }
+
         .button {
-            padding: 10px 20px;
+            padding: 12px 25px;
             font-size: 16px;
+            font-weight: bold;
+            color: #fff;
+            background-color: #007BFF;
+            border: none;
+            border-radius: 8px;
             cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        .button:hover {
+            background-color: #0056b3;
+            transform: scale(1.05);
+        }
+
+        .button:active {
+            transform: scale(0.95);
         }
     </style>
 </head>
 <body>
 
 <div class="welcome-container">
+    <div class="level-display">Welcome to ColorStack!</div>
     <div class="level-display">Current Level: <span id="currentLevel">1</span></div>
     <button class="button" onclick="startGame()">Play Game</button>
 </div>
@@ -149,7 +194,7 @@
         });
     }
 
-    // Select Square Function
+    // Square Selection Function
     function selectSquare(beaker) {
         if (suspendedSquare) {
             moveSquare(suspendedSquare, beaker);
@@ -172,7 +217,7 @@
         }
     }
 
-    // Check Win Condition
+    // Win Condition Check
     function checkWinCondition() {
         const beakers = Array.from(document.querySelectorAll('.beaker'));
         const allCorrect = beakers.every(beaker => {
@@ -187,7 +232,7 @@
         }
     }
 
-    // Shuffle Array Function
+    // Shuffle Array
     function shuffleArray(array) {
         for (let i = array.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
