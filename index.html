@@ -121,7 +121,7 @@
 
         const beakersToFill = Math.min(2 + Math.floor(level / 2), maxBeakers);
         const totalColors = Math.min(4 + Math.floor(level / 3), colors.length);
-        const squaresPerBeaker = 4;
+        const squaresPerBeaker = Math.min(4, 2 + level); // Allow levels with less than 4 squares per beaker
 
         createBeakers(maxBeakers);
         const colorDistribution = [];
@@ -171,7 +171,7 @@
         const beakers = Array.from(document.querySelectorAll('.beaker'));
         const allBeakersCorrect = beakers.every(beaker => {
             const squares = Array.from(beaker.children);
-            return squares.length === 0 || (squares.length === 4 && squares.every(s => s.dataset.color === squares[0].dataset.color));
+            return squares.length === 0 || squares.every(s => s.dataset.color === squares[0].dataset.color);
         });
 
         if (allBeakersCorrect) {
