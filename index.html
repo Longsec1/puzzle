@@ -105,7 +105,7 @@
             const beaker = document.createElement('div');
             beaker.classList.add('beaker');
             beaker.onclick = () => selectSquare(beaker);
-            i < count / 2 ? topRow.appendChild(beaker) : bottomRow.appendChild(beaker);
+            (i < count / 2 ? topRow : bottomRow).appendChild(beaker);
         }
     }
 
@@ -115,7 +115,7 @@
 
         const beakersToFill = Math.min(2 + Math.floor(level / 2), maxBeakers);
         const totalColors = Math.min(4 + Math.floor(level / 3), colors.length);
-        const squaresPerBeaker = 4;
+        const squaresPerBeaker = Math.min(4, 2 + level);
 
         createBeakers(maxBeakers);
         const colorDistribution = [];
@@ -127,10 +127,10 @@
         }
 
         shuffleArray(colorDistribution);
-        const beakers = Array.from(document.querySelectorAll('.beaker'));
+        const beakers = Array.from(bottomRow.children);
 
         beakers.slice(0, beakersToFill).forEach(beaker => {
-            while (colorDistribution.length && beaker.children.length < squaresPerBeaker) {
+            for (let i = 0; i < squaresPerBeaker; i++) {
                 const square = document.createElement('div');
                 square.classList.add('square');
                 square.style.backgroundColor = colorDistribution.pop();
@@ -138,6 +138,9 @@
                 beaker.appendChild(square);
             }
         });
+
+        autoArrange();
+        checkWinCondition();
     }
 
     function selectSquare(beaker) {
@@ -155,24 +158,44 @@
     function moveSquare(square, targetBeaker) {
         if ((!targetBeaker.lastChild || targetBeaker.lastChild.dataset.color === square.dataset.color) && targetBeaker.children.length < 4) {
             targetBeaker.appendChild(square);
+            autoArrange();
             checkWinCondition();
         } else {
             previousBeaker.appendChild(square);
         }
     }
 
+    function autoArrange() {
+        const beakers = Array.from(document.querySelectorAll('.beaker'));
+        let moved = true;
+
+        while (moved) {
+            moved = false;
+            beakers.forEach(beaker => {
+                const squares = Array.from(beaker.children);
+                const color = squares.length ? squares[0].dataset.color : null;
+
+                beakers.forEach(targetBeaker => {
+                    if (targetBeaker !== beaker &&
+                        targetBeaker.children.length < 4 &&
+                        (!targetBeaker.lastChild || targetBeaker.lastChild.dataset.color === color)) {
+                        beaker.lastChild && targetBeaker.appendChild(beaker.lastChild);
+                        moved = true;
+                    }
+                });
+            });
+        }
+    }
+
     function checkWinCondition() {
         const beakers = Array.from(document.querySelectorAll('.beaker'));
-
-        const isLevelComplete = beakers.every(beaker => {
+        const allCorrect = beakers.every(beaker => {
             const squares = Array.from(beaker.children);
-            if (squares.length === 0) return true;
-            const color = squares[0].dataset.color;
-            return squares.every(s => s.dataset.color === color);
-        }) && beakers.every(beaker => beaker.children.length === 0 || beaker.children.length === 4);
+            return squares.length === 0 || squares.every(s => s.dataset.color === squares[0].dataset.color);
+        });
 
-        if (isLevelComplete) {
-            alert(`Congratulations! You've completed level ${level}!`);
+        if (allCorrect) {
+            alert(`Level ${level} complete!`);
             level++;
             initGame();
         }
