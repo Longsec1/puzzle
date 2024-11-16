@@ -62,7 +62,6 @@
             padding: 10px;
             overflow: hidden;
             cursor: pointer;
-            transition: transform 0.2s ease;
         }
 
         .beaker:hover {
@@ -144,8 +143,8 @@
     // Initialize Game
     function initGame() {
         document.getElementById('gameLevel').textContent = level;
-        createBeakers(maxBeakers);
-        populateBottomBeakers();
+        createBeakers(level + 3); // Increase complexity
+        populateBottomBeakers(level + 2); // Increase number of colors
     }
 
     // Create Beakers
@@ -154,7 +153,6 @@
         const bottomRow = document.getElementById('bottomRow');
         [topRow, bottomRow].forEach(row => row.innerHTML = '');
 
-        // Create empty beakers in the top row
         for (let i = 0; i < count / 2; i++) {
             const beaker = document.createElement('div');
             beaker.classList.add('beaker');
@@ -162,7 +160,6 @@
             topRow.appendChild(beaker);
         }
 
-        // Create beakers in the bottom row
         for (let i = 0; i < count / 2; i++) {
             const beaker = document.createElement('div');
             beaker.classList.add('beaker');
@@ -171,27 +168,26 @@
         }
     }
 
-    // Populate bottom beakers with squares
-    function populateBottomBeakers() {
+    // Populate Beakers
+    function populateBottomBeakers(colorCount) {
         const beakers = document.querySelectorAll('#bottomRow .beaker');
-        let colorsToFill = [...colors.slice(0, maxBeakers / 2).flatMap(color => Array(4).fill(color))];
-        colorsToFill = colorsToFill.sort(() => Math.random() - 0.5);
+        const selectedColors = colors.slice(0, colorCount).flatMap(color => Array(4).fill(color));
+        const shuffledColors = selectedColors.sort(() => Math.random() - 0.5);
 
         beakers.forEach(beaker => {
             for (let i = 0; i < 4; i++) {
                 const square = document.createElement('div');
                 square.classList.add('square');
-                square.style.backgroundColor = colorsToFill.pop();
+                square.style.backgroundColor = shuffledColors.pop();
                 beaker.appendChild(square);
             }
         });
     }
 
-    // Select square to move
+    // Select Square
     function selectSquare(beaker) {
         if (suspendedSquare) {
-            const lastSquare = beaker.lastChild;
-            if (!lastSquare || lastSquare.style.backgroundColor === suspendedSquare.style.backgroundColor) {
+            if (!beaker.lastChild || beaker.lastChild.style.backgroundColor === suspendedSquare.style.backgroundColor) {
                 if (beaker.children.length < 4) {
                     beaker.appendChild(suspendedSquare);
                     suspendedSquare = null;
@@ -214,7 +210,7 @@
         const beakers = document.querySelectorAll('.beaker');
         const isComplete = Array.from(beakers).every(beaker => {
             const children = Array.from(beaker.children);
-            return children.every((child, i, arr) => child.style.backgroundColor === arr[0]?.style.backgroundColor);
+            return children.length === 0 || children.every((child, i, arr) => child.style.backgroundColor === arr[0].style.backgroundColor);
         });
         if (isComplete) {
             level++;
