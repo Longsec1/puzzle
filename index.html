@@ -36,7 +36,6 @@
             flex-direction: column;
             gap: 20px;
             align-items: center;
-            opacity: 1;
             transition: opacity 0.5s ease;
         }
 
@@ -64,11 +63,13 @@
             flex-direction: column-reverse;
             justify-content: flex-start;
             align-items: center;
-            background: linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.3));
+            background: rgba(255, 255, 255, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.5);
             box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.1), 0 6px 12px rgba(0, 0, 0, 0.2);
             padding: 10px;
-            position: relative;
             overflow: hidden;
+            position: relative;
+            transition: transform 0.3s ease;
         }
 
         /* Beaker Reflection */
@@ -79,8 +80,13 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: radial-gradient(circle, rgba(255, 255, 255, 0.5), transparent);
-            opacity: 0.3;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.4), transparent);
+            opacity: 0.2;
+            pointer-events: none;
+        }
+
+        .beaker:hover {
+            transform: scale(1.05);
         }
 
         /* Squares */
@@ -88,9 +94,10 @@
             width: 60px;
             height: 30px;
             border-radius: 5px;
+            cursor: pointer;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
-            animation: bounceIn 0.5s ease;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+            animation: bounceIn 0.5s ease;
         }
 
         /* Bounce Effect */
@@ -100,15 +107,20 @@
             100% { transform: scale(1); }
         }
 
-        /* Suspended Square Effect */
+        /* Suspended Effect */
         .suspended {
             transform: translateY(-50px) scale(1.05);
-            border: 2px solid #fffa;
-            z-index: 2;
+            border: 2px solid #fff;
             box-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
         }
 
-        /* Buttons */
+        /* UI Elements */
+        .level-display {
+            font-size: 24px;
+            font-weight: bold;
+            color: #fff;
+        }
+
         .button {
             padding: 12px 25px;
             font-size: 16px;
@@ -118,19 +130,13 @@
             border: none;
             border-radius: 8px;
             cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
             transition: background-color 0.3s ease, transform 0.2s ease;
         }
 
         .button:hover {
             background-color: #0056b3;
             transform: scale(1.05);
-        }
-
-        /* UI Elements */
-        .level-display {
-            font-size: 24px;
-            font-weight: bold;
-            color: #fff;
         }
     </style>
 </head>
@@ -139,7 +145,7 @@
 <div class="welcome-container">
     <div class="level-display">Welcome to ColorStack!</div>
     <div class="level-display">Current Level: <span id="currentLevel">1</span></div>
-    <button class="button" onclick="startGame()">▶️ Play</button>
+    <button class="button" onclick="startGame()">▶️ Play Game</button>
 </div>
 
 <div class="game-container">
@@ -158,22 +164,26 @@
     let previousBeaker = null;
     let level = 1;
     const maxBeakers = 4;
-    const topRow = document.getElementById('topRow');
-    const bottomRow = document.getElementById('bottomRow');
 
+    // Start Game
     function startGame() {
         document.querySelector('.welcome-container').style.display = 'none';
         document.querySelector('.game-container').style.display = 'flex';
         initGame();
     }
 
+    // Return to Home
     function returnHome() {
         document.querySelector('.game-container').style.display = 'none';
         document.querySelector('.welcome-container').style.display = 'flex';
     }
 
+    // Create Beakers
     function createBeakers(count) {
+        const topRow = document.getElementById('topRow');
+        const bottomRow = document.getElementById('bottomRow');
         [topRow, bottomRow].forEach(row => row.innerHTML = '');
+
         for (let i = 0; i < count; i++) {
             const beaker = document.createElement('div');
             beaker.classList.add('beaker');
@@ -182,45 +192,20 @@
         }
     }
 
+    // Initialize Game
     function initGame() {
         document.getElementById('gameLevel').textContent = level;
-        document.getElementById('currentLevel').textContent = level;
-        const beakersToFill = Math.min(2 + Math.floor(level / 2), maxBeakers);
         createBeakers(maxBeakers);
-
-        const colorsToUse = colors.slice(0, beakersToFill);
-        let colorPool = colorsToUse.flatMap(color => Array(4).fill(color));
-
-        shuffleArray(colorPool);
-        const beakers = Array.from(document.querySelectorAll('.beaker'));
-
-        for (let i = 0; i < beakersToFill; i++) {
-            for (let j = 0; j < 4; j++) {
-                const square = document.createElement('div');
-                square.classList.add('square');
-                square.style.backgroundColor = colorPool.pop();
-                square.dataset.color = square.style.backgroundColor;
-                beaker.appendChild(square);
-            }
-        }
     }
 
+    // Select Square
     function selectSquare(beaker) {
         if (suspendedSquare) {
-            moveSquare(suspendedSquare, beaker);
+            beaker.appendChild(suspendedSquare);
             suspendedSquare = null;
         } else if (beaker.lastChild) {
             suspendedSquare = beaker.lastChild;
             suspendedSquare.classList.add('suspended');
-            previousBeaker = beaker;
-        }
-    }
-
-    function moveSquare(square, targetBeaker) {
-        if (targetBeaker.children.length < 4) {
-            targetBeaker.appendChild(square);
-        } else {
-            previousBeaker.appendChild(square);
         }
     }
 </script>
