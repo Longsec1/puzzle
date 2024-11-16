@@ -32,6 +32,7 @@
             flex-direction: column;
             gap: 20px;
             align-items: center;
+            width: 100%;
         }
 
         .game-container {
@@ -40,8 +41,8 @@
 
         .play-area {
             display: grid;
-            grid-template-rows: auto 1fr 1fr auto;
-            gap: 20px;
+            grid-template-rows: auto 1fr auto 1fr auto;
+            gap: 40px; /* Increased gap between upper and lower beakers */
             align-items: center;
         }
 
@@ -51,12 +52,13 @@
 
         .container-row {
             display: flex;
+            justify-content: center;
             gap: 15px;
         }
 
         .beaker {
             width: 70px;
-            height: 140px; /* Height for 4 squares */
+            height: 140px;
             border-radius: 10px;
             display: flex;
             flex-direction: column-reverse;
@@ -98,6 +100,7 @@
             justify-content: space-between;
             width: 100%;
             max-width: 400px;
+            padding-bottom: 10px; /* Reduced space between lower beakers and footer */
         }
 
         .button {
@@ -160,7 +163,8 @@
     // Initialize Game
     function initGame() {
         document.getElementById('gameLevel').textContent = level;
-        createBeakers(4);  // Limit the number of beakers to 4
+        const maxBeakers = Math.min(4, level + 2);
+        createBeakers(maxBeakers);
         populateBottomBeakers(Math.min(level + 1, colors.length));
     }
 
@@ -170,14 +174,17 @@
         const bottomRow = document.getElementById('bottomRow');
         [topRow, bottomRow].forEach(row => row.innerHTML = '');
 
-        for (let i = 0; i < 2; i++) {
+        const topCount = Math.min(4, count);
+        const bottomCount = Math.min(4, count);
+
+        for (let i = 0; i < topCount; i++) {
             const beaker = document.createElement('div');
             beaker.classList.add('beaker');
             beaker.onclick = () => selectSquare(beaker);
             topRow.appendChild(beaker);
         }
 
-        for (let i = 0; i < 2; i++) {
+        for (let i = 0; i < bottomCount; i++) {
             const beaker = document.createElement('div');
             beaker.classList.add('beaker');
             beaker.onclick = () => selectSquare(beaker);
@@ -226,10 +233,9 @@
 
     // Check Level Completion
     function checkLevelCompletion() {
-        const beakers = document.querySelectorAll('.beaker');
-        const isComplete = Array.from(beakers).every(beaker => {
-            const children = Array.from(beaker.children);
-            return children.length === 0 || children.every((child, _, arr) => child.style.backgroundColor === arr[0].style.backgroundColor);
+        const isComplete = Array.from(document.querySelectorAll('.beaker')).every(beaker => {
+            const colors = Array.from(beaker.children).map(sq => sq.style.backgroundColor);
+            return colors.length === 0 || colors.every(color => color === colors[0]);
         });
         if (isComplete) {
             level++;
