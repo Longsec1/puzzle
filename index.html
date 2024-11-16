@@ -72,45 +72,20 @@
             transition: transform 0.3s ease;
         }
 
-        /* Beaker Reflection */
-        .beaker::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle, rgba(255, 255, 255, 0.4), transparent);
-            opacity: 0.2;
-            pointer-events: none;
-        }
-
-        .beaker:hover {
-            transform: scale(1.05);
-        }
-
         /* Squares */
         .square {
             width: 60px;
             height: 30px;
             border-radius: 5px;
             cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+            transition: transform 0.2s ease;
             animation: bounceIn 0.5s ease;
-        }
-
-        /* Bounce Effect */
-        @keyframes bounceIn {
-            0% { transform: scale(0.8); }
-            60% { transform: scale(1.1); }
-            100% { transform: scale(1); }
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
         }
 
         /* Suspended Effect */
         .suspended {
-            transform: translateY(-50px) scale(1.05);
-            border: 2px solid #fff;
+            transform: translateY(-50px);
             box-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
         }
 
@@ -144,7 +119,6 @@
 
 <div class="welcome-container">
     <div class="level-display">Welcome to ColorStack!</div>
-    <div class="level-display">Current Level: <span id="currentLevel">1</span></div>
     <button class="button" onclick="startGame()">▶️ Play Game</button>
 </div>
 
@@ -154,14 +128,13 @@
         <div class="container-row" id="topRow"></div>
         <div class="container-row" id="bottomRow"></div>
     </div>
-    <button class="button" onclick="returnHome()">🏠 Home</button>
     <button class="button" onclick="initGame()">🔄 Restart</button>
+    <button class="button" onclick="returnHome()">🏠 Home</button>
 </div>
 
 <script>
     const colors = ['#FF5733', '#33FF57', '#3357FF', '#FF33A1', '#FFFF33', '#33FFFF', '#FF6633'];
     let suspendedSquare = null;
-    let previousBeaker = null;
     let level = 1;
     const maxBeakers = 4;
 
@@ -192,10 +165,35 @@
         }
     }
 
+    // Populate Beakers with squares
+    function populateBeakers() {
+        const beakers = document.querySelectorAll('.beaker');
+        const colorsToFill = Array(level + 2).fill().flatMap(() => colors);
+
+        beakers.forEach((beaker, index) => {
+            for (let i = 0; i < 4; i++) {
+                const square = document.createElement('div');
+                square.classList.add('square');
+                square.style.backgroundColor = colorsToFill.pop();
+                beaker.appendChild(square);
+            }
+        });
+    }
+
+    // Check if the game level is complete
+    function checkLevelCompletion() {
+        const beakers = document.querySelectorAll('.beaker');
+        return Array.from(beakers).every(beaker => {
+            const children = Array.from(beaker.children);
+            return children.every((child, i, arr) => child.style.backgroundColor === arr[0].style.backgroundColor);
+        });
+    }
+
     // Initialize Game
     function initGame() {
         document.getElementById('gameLevel').textContent = level;
         createBeakers(maxBeakers);
+        populateBeakers();
     }
 
     // Select Square
@@ -203,6 +201,11 @@
         if (suspendedSquare) {
             beaker.appendChild(suspendedSquare);
             suspendedSquare = null;
+            if (checkLevelCompletion()) {
+                level++;
+                alert(`Level ${level} Complete!`);
+                initGame();
+            }
         } else if (beaker.lastChild) {
             suspendedSquare = beaker.lastChild;
             suspendedSquare.classList.add('suspended');
