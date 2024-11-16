@@ -40,8 +40,13 @@
 
         .play-area {
             display: grid;
-            grid-template-rows: 1fr 1fr;
+            grid-template-rows: auto 1fr 1fr auto;
             gap: 20px;
+            align-items: center;
+        }
+
+        .suspension-area {
+            height: 50px;
         }
 
         .container-row {
@@ -51,7 +56,7 @@
 
         .beaker {
             width: 70px;
-            height: 140px; /* Reduced height for 4 squares */
+            height: 140px; /* Height for 4 squares */
             border-radius: 10px;
             display: flex;
             flex-direction: column-reverse;
@@ -88,6 +93,13 @@
             color: #fff;
         }
 
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 400px;
+        }
+
         .button {
             padding: 12px 25px;
             font-size: 16px;
@@ -97,6 +109,7 @@
             border: none;
             border-radius: 8px;
             cursor: pointer;
+            width: 45%;
         }
 
         .button:hover {
@@ -114,11 +127,15 @@
 <div class="game-container">
     <div class="level-display">Level: <span id="gameLevel">1</span></div>
     <div class="play-area">
+        <div class="suspension-area" id="topSuspension"></div>
         <div class="container-row" id="topRow"></div>
         <div class="container-row" id="bottomRow"></div>
+        <div class="suspension-area" id="bottomSuspension"></div>
     </div>
-    <button class="button" onclick="initGame()">🔄 Restart</button>
-    <button class="button" onclick="returnHome()">🏠 Home</button>
+    <div class="button-container">
+        <button class="button" onclick="initGame()">🔄 Restart</button>
+        <button class="button" onclick="returnHome()">🏠 Home</button>
+    </div>
 </div>
 
 <script>
@@ -143,8 +160,8 @@
     // Initialize Game
     function initGame() {
         document.getElementById('gameLevel').textContent = level;
-        createBeakers(level + 3);
-        populateBottomBeakers(level + 2);
+        createBeakers(4);  // Limit the number of beakers to 4
+        populateBottomBeakers(Math.min(level + 1, colors.length));
     }
 
     // Create Beakers
@@ -153,14 +170,14 @@
         const bottomRow = document.getElementById('bottomRow');
         [topRow, bottomRow].forEach(row => row.innerHTML = '');
 
-        for (let i = 0; i < count / 2; i++) {
+        for (let i = 0; i < 2; i++) {
             const beaker = document.createElement('div');
             beaker.classList.add('beaker');
             beaker.onclick = () => selectSquare(beaker);
             topRow.appendChild(beaker);
         }
 
-        for (let i = 0; i < count / 2; i++) {
+        for (let i = 0; i < 2; i++) {
             const beaker = document.createElement('div');
             beaker.classList.add('beaker');
             beaker.onclick = () => selectSquare(beaker);
@@ -190,7 +207,6 @@
             if (!beaker.lastChild || beaker.lastChild.style.backgroundColor === suspendedSquare.style.backgroundColor) {
                 if (beaker.children.length < 4) {
                     beaker.appendChild(suspendedSquare);
-                    suspendedSquare.style.position = 'relative'; 
                     suspendedSquare.classList.remove('suspended');
                     suspendedSquare = null;
                     previousBeaker = null;
@@ -198,7 +214,6 @@
                 }
             } else {
                 previousBeaker.appendChild(suspendedSquare);
-                suspendedSquare.style.position = 'relative'; 
                 suspendedSquare.classList.remove('suspended');
                 suspendedSquare = null;
             }
@@ -214,7 +229,7 @@
         const beakers = document.querySelectorAll('.beaker');
         const isComplete = Array.from(beakers).every(beaker => {
             const children = Array.from(beaker.children);
-            return children.length === 0 || children.every((child, i, arr) => child.style.backgroundColor === arr[0].style.backgroundColor);
+            return children.length === 0 || children.every((child, _, arr) => child.style.backgroundColor === arr[0].style.backgroundColor);
         });
         if (isComplete) {
             level++;
@@ -225,4 +240,4 @@
 </script>
 
 </body>
-        </html>
+    </html>
