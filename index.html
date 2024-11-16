@@ -51,7 +51,7 @@
 
         .beaker {
             width: 70px;
-            height: 180px;
+            height: 140px; /* Reduced height for 4 squares */
             border-radius: 10px;
             display: flex;
             flex-direction: column-reverse;
@@ -59,9 +59,10 @@
             align-items: center;
             background: rgba(255, 255, 255, 0.3);
             border: 2px solid rgba(255, 255, 255, 0.5);
-            padding: 10px;
+            padding: 5px;
             overflow: hidden;
             cursor: pointer;
+            transition: transform 0.2s ease;
         }
 
         .beaker:hover {
@@ -125,7 +126,6 @@
     let suspendedSquare = null;
     let previousBeaker = null;
     let level = 1;
-    const maxBeakers = 4;
 
     // Start Game
     function startGame() {
@@ -143,8 +143,8 @@
     // Initialize Game
     function initGame() {
         document.getElementById('gameLevel').textContent = level;
-        createBeakers(level + 3); // Increase complexity
-        populateBottomBeakers(level + 2); // Increase number of colors
+        createBeakers(level + 3);
+        populateBottomBeakers(level + 2);
     }
 
     // Create Beakers
@@ -190,12 +190,16 @@
             if (!beaker.lastChild || beaker.lastChild.style.backgroundColor === suspendedSquare.style.backgroundColor) {
                 if (beaker.children.length < 4) {
                     beaker.appendChild(suspendedSquare);
+                    suspendedSquare.style.position = 'relative'; 
+                    suspendedSquare.classList.remove('suspended');
                     suspendedSquare = null;
                     previousBeaker = null;
                     checkLevelCompletion();
                 }
             } else {
                 previousBeaker.appendChild(suspendedSquare);
+                suspendedSquare.style.position = 'relative'; 
+                suspendedSquare.classList.remove('suspended');
                 suspendedSquare = null;
             }
         } else if (beaker.lastChild) {
@@ -205,7 +209,7 @@
         }
     }
 
-    // Check level completion
+    // Check Level Completion
     function checkLevelCompletion() {
         const beakers = document.querySelectorAll('.beaker');
         const isComplete = Array.from(beakers).every(beaker => {
@@ -221,4 +225,4 @@
 </script>
 
 </body>
-    </html>
+        </html>
