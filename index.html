@@ -46,8 +46,7 @@
 
         .play-area {
             display: grid;
-            grid-template-rows: auto 1fr auto 1fr auto;
-            gap: 30px; /* Increased gap between upper and lower beakers */
+            gap: 30px;
             align-items: center;
             justify-items: center;
         }
@@ -102,7 +101,6 @@
             justify-content: space-between;
             width: 100%;
             max-width: 400px;
-            padding-bottom: 10px;
         }
 
         .button {
@@ -121,9 +119,16 @@
             background-color: #0056b3;
         }
 
-        .bottom-beakers {
+        .beaker-border {
+            border: 3px solid rgba(255, 255, 255, 0.6);
+            border-radius: 12px;
+            padding: 10px;
+            margin-top: 10px;
+        }
+
+        .lower-beakers {
             position: absolute;
-            bottom: 70px; /* Aligns lower beakers close to the footer buttons */
+            bottom: 120px; /* Aligns lower beakers close to the footer buttons */
         }
     </style>
 </head>
@@ -137,8 +142,10 @@
 <div class="game-container">
     <div class="level-display">Level: <span id="gameLevel">1</span></div>
     <div class="play-area">
-        <div class="container-row" id="topRow"></div>
-        <div class="bottom-beakers">
+        <div class="beaker-border">
+            <div class="container-row" id="topRow"></div>
+        </div>
+        <div class="lower-beakers beaker-border">
             <div class="container-row" id="bottomRow"></div>
         </div>
     </div>
@@ -170,7 +177,7 @@
     // Initialize Game
     function initGame() {
         document.getElementById('gameLevel').textContent = level;
-        const maxBeakers = Math.min(4, level + 2);
+        const maxBeakers = Math.min(3, level + 2);
         createBeakers(maxBeakers);
         populateBottomBeakers(Math.min(level + 1, colors.length));
     }
@@ -181,8 +188,8 @@
         const bottomRow = document.getElementById('bottomRow');
         [topRow, bottomRow].forEach(row => row.innerHTML = '');
 
-        const topCount = Math.min(4, count);
-        const bottomCount = Math.min(4, count);
+        const topCount = Math.min(3, count);
+        const bottomCount = Math.min(3, count);
 
         for (let i = 0; i < topCount; i++) {
             const beaker = document.createElement('div');
@@ -221,33 +228,11 @@
             if (!beaker.lastChild || beaker.lastChild.style.backgroundColor === suspendedSquare.style.backgroundColor) {
                 if (beaker.children.length < 4) {
                     beaker.appendChild(suspendedSquare);
-                    suspendedSquare.classList.remove('suspended');
                     suspendedSquare = null;
-                    previousBeaker = null;
-                    checkLevelCompletion();
                 }
-            } else {
-                previousBeaker.appendChild(suspendedSquare);
-                suspendedSquare.classList.remove('suspended');
-                suspendedSquare = null;
             }
         } else if (beaker.lastChild) {
             suspendedSquare = beaker.lastChild;
-            previousBeaker = beaker;
-            suspendedSquare.classList.add('suspended');
-        }
-    }
-
-    // Check Level Completion
-    function checkLevelCompletion() {
-        const isComplete = Array.from(document.querySelectorAll('.beaker')).every(beaker => {
-            const colors = Array.from(beaker.children).map(sq => sq.style.backgroundColor);
-            return colors.length === 0 || colors.every(color => color === colors[0]);
-        });
-        if (isComplete) {
-            level++;
-            alert(`Level ${level - 1} Complete! Moving to Level ${level}`);
-            initGame();
         }
     }
 </script>
