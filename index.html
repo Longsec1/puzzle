@@ -45,31 +45,29 @@
         }
 
         .play-area {
-            display: grid;
-            gap: 30px;
-            align-items: center;
-            justify-items: center;
-        }
-
-        .beaker-container {
             display: flex;
             flex-direction: column;
             align-items: center;
+            gap: 20px;
         }
 
         .border-box {
-            border: 2px solid rgba(255, 255, 255, 0.7);
-            padding: 10px;
-            padding-top: 40px;
             display: flex;
             justify-content: center;
+            padding: 10px;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            border-radius: 15px;
+            width: max-content;
             gap: 15px;
+            margin-top: 40px; /* Adding space between upper and lower areas */
         }
 
-        .container-row {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
+        .upper-beakers-border {
+            margin-bottom: 10px;
+        }
+
+        .lower-beakers-border {
+            margin-top: 10px;
         }
 
         .beaker {
@@ -116,7 +114,6 @@
             justify-content: space-between;
             width: 100%;
             max-width: 400px;
-            padding-bottom: 10px;
         }
 
         .button {
@@ -134,11 +131,6 @@
         .button:hover {
             background-color: #0056b3;
         }
-
-        .bottom-beakers {
-            position: absolute;
-            bottom: 80px;
-        }
     </style>
 </head>
 <body>
@@ -151,18 +143,8 @@
 <div class="game-container">
     <div class="level-display">Level: <span id="gameLevel">1</span></div>
     <div class="play-area">
-        <div class="beaker-container">
-            <div class="border-box">
-                <div class="container-row" id="topRow"></div>
-            </div>
-        </div>
-        <div class="bottom-beakers">
-            <div class="beaker-container">
-                <div class="border-box">
-                    <div class="container-row" id="bottomRow"></div>
-                </div>
-            </div>
-        </div>
+        <div class="border-box upper-beakers-border" id="upperBeakers"></div>
+        <div class="border-box lower-beakers-border" id="lowerBeakers"></div>
     </div>
     <div class="button-container">
         <button class="button" onclick="initGame()">🔄 Restart</button>
@@ -176,49 +158,59 @@
     let previousBeaker = null;
     let level = 1;
 
+    // Start Game
     function startGame() {
         document.querySelector('.welcome-container').style.display = 'none';
         document.querySelector('.game-container').style.display = 'flex';
         initGame();
     }
 
+    // Return to Home
     function returnHome() {
         document.querySelector('.game-container').style.display = 'none';
         document.querySelector('.welcome-container').style.display = 'flex';
     }
 
+    // Initialize Game
     function initGame() {
         document.getElementById('gameLevel').textContent = level;
-        const maxBeakers = Math.min(3, level + 2);
-        createBeakers(maxBeakers);
-        populateBottomBeakers(Math.min(level + 1, colors.length));
+        createBeakers();
+        populateBottomBeakers();
     }
 
-    function createBeakers(count) {
-        const topRow = document.getElementById('topRow');
-        const bottomRow = document.getElementById('bottomRow');
-        topRow.innerHTML = '';
-        bottomRow.innerHTML = '';
+    // Create Beakers
+    function createBeakers() {
+        const upperBeakers = document.getElementById('upperBeakers');
+        const lowerBeakers = document.getElementById('lowerBeakers');
+        upperBeakers.innerHTML = '';
+        lowerBeakers.innerHTML = '';
 
-        for (let i = 0; i < Math.min(count, 3); i++) {
-            const beaker = document.createElement('div');
-            beaker.classList.add('beaker');
-            beaker.onclick = () => selectSquare(beaker);
-            topRow.appendChild(beaker);
+        const topBeakerCount = Math.min(3, level + 1);
+        const bottomBeakerCount = Math.min(3, level);
+
+        for (let i = 0; i < topBeakerCount; i++) {
+            const beaker = createBeaker();
+            upperBeakers.appendChild(beaker);
         }
 
-        const bottomBeakerCount = Array.from({ length: count }).filter((_, i) => i < 2);
-        bottomBeakerCount.forEach(() => {
-            const beaker = document.createElement('div');
-            beaker.classList.add('beaker');
-            beaker.onclick = () => selectSquare(beaker);
-            bottomRow.appendChild(beaker);
-        });
+        for (let i = 0; i < bottomBeakerCount; i++) {
+            const beaker = createBeaker();
+            lowerBeakers.appendChild(beaker);
+        }
     }
 
-    function populateBottomBeakers(colorCount) {
-        const beakers = document.querySelectorAll('#bottomRow .beaker');
-        const selectedColors = colors.slice(0, colorCount).flatMap(color => Array(4).fill(color));
+    // Create a single beaker
+    function createBeaker() {
+        const beaker = document.createElement('div');
+        beaker.classList.add('beaker');
+        beaker.onclick = () => selectSquare(beaker);
+        return beaker;
+    }
+
+    // Populate Beakers
+    function populateBottomBeakers() {
+        const beakers = document.querySelectorAll('#lowerBeakers .beaker');
+        const selectedColors = colors.slice(0, beakers.length).flatMap(color => Array(4).fill(color));
         const shuffledColors = selectedColors.sort(() => Math.random() - 0.5);
 
         beakers.forEach(beaker => {
@@ -230,6 +222,29 @@
             }
         });
     }
+
+    // Select Square
+    function selectSquare(beaker) {
+        if (suspendedSquare) {
+            if (!beaker.lastChild || beaker.lastChild.style.backgroundColor === suspendedSquare.style.backgroundColor) {
+                if (beaker.children.length < 4) {
+                    beaker.appendChild(suspendedSquare);
+                    suspendedSquare.classList.remove('suspended');
+                    suspendedSquare = null;
+                    previousBeaker = null;
+                }
+            } else {
+                previousBeaker.appendChild(suspendedSquare);
+                suspendedSquare.classList.remove('suspended');
+                suspendedSquare = null;
+            }
+        } else if (beaker.lastChild) {
+            suspendedSquare = beaker.lastChild;
+            previousBeaker = beaker;
+            suspendedSquare.classList.add('suspended');
+        }
+    }
 </script>
+
 </body>
     </html>
