@@ -13,7 +13,7 @@
 
         html, body {
             height: 100%;
-            overflow: hidden; /* Prevent scrolling */
+            overflow: hidden;
         }
 
         body {
@@ -51,23 +51,24 @@
             gap: 20px;
         }
 
-        .beaker-container {
+        .container-row {
             display: flex;
-            gap: 15px;
+            justify-content: center;
+            gap: 20px;
         }
 
         .beaker {
             width: 70px;
             height: 140px;
+            border-radius: 0 0 10px 10px;
             display: flex;
             flex-direction: column-reverse;
+            justify-content: flex-start;
             align-items: center;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 0 0 10px 10px;
+            background: rgba(255, 255, 255, 0.3);
             padding: 5px;
             cursor: pointer;
             position: relative;
-            overflow: visible;
         }
 
         .square {
@@ -79,7 +80,7 @@
 
         .suspended {
             position: absolute;
-            bottom: 150px;
+            bottom: 150px; /* Show suspended square above beaker */
             border: 2px solid #fff;
             box-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
         }
@@ -124,7 +125,8 @@
 <div class="game-container">
     <div class="level-display">Level: <span id="gameLevel">1</span></div>
     <div class="play-area">
-        <div class="beaker-container" id="beakersContainer"></div>
+        <div class="container-row" id="upperBeakers"></div>
+        <div class="container-row" id="lowerBeakers"></div>
     </div>
     <div class="button-container">
         <button class="button" onclick="initGame()">🔄 Restart</button>
@@ -156,28 +158,37 @@
     function initGame() {
         document.getElementById('gameLevel').textContent = level;
         createBeakers();
-        populateBeakers();
+        populateLowerBeakers();
     }
 
     // Create Beakers
     function createBeakers() {
-        const beakersContainer = document.getElementById('beakersContainer');
-        beakersContainer.innerHTML = '';
+        const upperBeakers = document.getElementById('upperBeakers');
+        const lowerBeakers = document.getElementById('lowerBeakers');
+        upperBeakers.innerHTML = '';
+        lowerBeakers.innerHTML = '';
 
-        const beakerCount = Math.min(6, level + 2);
-        for (let i = 0; i < beakerCount; i++) {
-            const beaker = document.createElement('div');
-            beaker.classList.add('beaker');
-            beaker.onclick = () => selectSquare(beaker);
-            beakersContainer.appendChild(beaker);
+        for (let i = 0; i < Math.min(3, level + 1); i++) {
+            upperBeakers.appendChild(createBeaker());
+        }
+
+        for (let i = 0; i < Math.min(3, level); i++) {
+            lowerBeakers.appendChild(createBeaker());
         }
     }
 
-    // Populate Beakers with colors
-    function populateBeakers() {
-        const beakers = document.querySelectorAll('.beaker');
-        const colorsSet = colors.slice(0, level + 2).flatMap(c => Array(4).fill(c));
-        const shuffledColors = colorsSet.sort(() => Math.random() - 0.5);
+    // Create a single beaker
+    function createBeaker() {
+        const beaker = document.createElement('div');
+        beaker.classList.add('beaker');
+        beaker.onclick = () => selectSquare(beaker);
+        return beaker;
+    }
+
+    // Populate Lower Beakers
+    function populateLowerBeakers() {
+        const beakers = document.querySelectorAll('#lowerBeakers .beaker');
+        const shuffledColors = colors.slice(0, level + 2).flatMap(c => Array(4).fill(c)).sort(() => Math.random() - 0.5);
 
         beakers.forEach(beaker => {
             for (let i = 0; i < 4; i++) {
@@ -200,22 +211,20 @@
             }
         } else if (beaker.lastChild) {
             suspendedSquare = beaker.lastChild;
-            suspendedSquare.classList.add('suspended');
             previousBeaker = beaker;
+            suspendedSquare.classList.add('suspended');
         }
     }
 
     // Check Level Completion
     function checkLevelCompletion() {
-        const beakers = Array.from(document.querySelectorAll('.beaker'));
-        const isComplete = beakers.every(beaker => {
-            const color = beaker.lastChild?.style.backgroundColor;
-            return Array.from(beaker.children).every(sq => sq.style.backgroundColor === color);
+        const isComplete = Array.from(document.querySelectorAll('.beaker')).every(beaker => {
+            const colors = Array.from(beaker.children).map(sq => sq.style.backgroundColor);
+            return colors.length === 0 || colors.every(color => color === colors[0]);
         });
-
         if (isComplete) {
             level++;
-            alert(`Level ${level - 1} Complete! Moving to Level ${level}`);
+            alert(`Level ${level - 1} Complete! Proceeding to Level ${level}`);
             initGame();
         }
     }
