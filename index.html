@@ -51,6 +51,21 @@
             justify-items: center;
         }
 
+        .beaker-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .border-box {
+            border: 2px solid rgba(255, 255, 255, 0.7);
+            padding: 10px;
+            padding-top: 40px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
         .container-row {
             display: flex;
             justify-content: center;
@@ -101,6 +116,7 @@
             justify-content: space-between;
             width: 100%;
             max-width: 400px;
+            padding-bottom: 10px;
         }
 
         .button {
@@ -119,16 +135,9 @@
             background-color: #0056b3;
         }
 
-        .beaker-border {
-            border: 3px solid rgba(255, 255, 255, 0.6);
-            border-radius: 12px;
-            padding: 10px;
-            margin-top: 10px;
-        }
-
-        .lower-beakers {
+        .bottom-beakers {
             position: absolute;
-            bottom: 120px; /* Aligns lower beakers close to the footer buttons */
+            bottom: 80px;
         }
     </style>
 </head>
@@ -142,11 +151,17 @@
 <div class="game-container">
     <div class="level-display">Level: <span id="gameLevel">1</span></div>
     <div class="play-area">
-        <div class="beaker-border">
-            <div class="container-row" id="topRow"></div>
+        <div class="beaker-container">
+            <div class="border-box">
+                <div class="container-row" id="topRow"></div>
+            </div>
         </div>
-        <div class="lower-beakers beaker-border">
-            <div class="container-row" id="bottomRow"></div>
+        <div class="bottom-beakers">
+            <div class="beaker-container">
+                <div class="border-box">
+                    <div class="container-row" id="bottomRow"></div>
+                </div>
+            </div>
         </div>
     </div>
     <div class="button-container">
@@ -161,20 +176,17 @@
     let previousBeaker = null;
     let level = 1;
 
-    // Start Game
     function startGame() {
         document.querySelector('.welcome-container').style.display = 'none';
         document.querySelector('.game-container').style.display = 'flex';
         initGame();
     }
 
-    // Return to Home
     function returnHome() {
         document.querySelector('.game-container').style.display = 'none';
         document.querySelector('.welcome-container').style.display = 'flex';
     }
 
-    // Initialize Game
     function initGame() {
         document.getElementById('gameLevel').textContent = level;
         const maxBeakers = Math.min(3, level + 2);
@@ -182,31 +194,28 @@
         populateBottomBeakers(Math.min(level + 1, colors.length));
     }
 
-    // Create Beakers
     function createBeakers(count) {
         const topRow = document.getElementById('topRow');
         const bottomRow = document.getElementById('bottomRow');
-        [topRow, bottomRow].forEach(row => row.innerHTML = '');
+        topRow.innerHTML = '';
+        bottomRow.innerHTML = '';
 
-        const topCount = Math.min(3, count);
-        const bottomCount = Math.min(3, count);
-
-        for (let i = 0; i < topCount; i++) {
+        for (let i = 0; i < Math.min(count, 3); i++) {
             const beaker = document.createElement('div');
             beaker.classList.add('beaker');
             beaker.onclick = () => selectSquare(beaker);
             topRow.appendChild(beaker);
         }
 
-        for (let i = 0; i < bottomCount; i++) {
+        const bottomBeakerCount = Array.from({ length: count }).filter((_, i) => i < 2);
+        bottomBeakerCount.forEach(() => {
             const beaker = document.createElement('div');
             beaker.classList.add('beaker');
             beaker.onclick = () => selectSquare(beaker);
             bottomRow.appendChild(beaker);
-        }
+        });
     }
 
-    // Populate Beakers
     function populateBottomBeakers(colorCount) {
         const beakers = document.querySelectorAll('#bottomRow .beaker');
         const selectedColors = colors.slice(0, colorCount).flatMap(color => Array(4).fill(color));
@@ -221,21 +230,6 @@
             }
         });
     }
-
-    // Select Square
-    function selectSquare(beaker) {
-        if (suspendedSquare) {
-            if (!beaker.lastChild || beaker.lastChild.style.backgroundColor === suspendedSquare.style.backgroundColor) {
-                if (beaker.children.length < 4) {
-                    beaker.appendChild(suspendedSquare);
-                    suspendedSquare = null;
-                }
-            }
-        } else if (beaker.lastChild) {
-            suspendedSquare = beaker.lastChild;
-        }
-    }
 </script>
-
 </body>
     </html>
