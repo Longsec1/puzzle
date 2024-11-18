@@ -57,9 +57,7 @@
             padding: 10px;
             border: 2px solid rgba(255, 255, 255, 0.5);
             border-radius: 15px;
-            width: max-content;
             gap: 15px;
-            margin-top: 40px; /* Adding space between upper and lower areas */
         }
 
         .upper-beakers-border {
@@ -169,6 +167,7 @@
     function returnHome() {
         document.querySelector('.game-container').style.display = 'none';
         document.querySelector('.welcome-container').style.display = 'flex';
+        level = 1;
     }
 
     // Initialize Game
@@ -185,18 +184,11 @@
         upperBeakers.innerHTML = '';
         lowerBeakers.innerHTML = '';
 
-        const topBeakerCount = Math.min(3, level + 1);
-        const bottomBeakerCount = Math.min(3, level);
+        const topCount = Math.min(3, level + 1);
+        const bottomCount = Math.min(3, level);
 
-        for (let i = 0; i < topBeakerCount; i++) {
-            const beaker = createBeaker();
-            upperBeakers.appendChild(beaker);
-        }
-
-        for (let i = 0; i < bottomBeakerCount; i++) {
-            const beaker = createBeaker();
-            lowerBeakers.appendChild(beaker);
-        }
+        for (let i = 0; i < topCount; i++) upperBeakers.appendChild(createBeaker());
+        for (let i = 0; i < bottomCount; i++) lowerBeakers.appendChild(createBeaker());
     }
 
     // Create a single beaker
@@ -210,8 +202,8 @@
     // Populate Beakers
     function populateBottomBeakers() {
         const beakers = document.querySelectorAll('#lowerBeakers .beaker');
-        const selectedColors = colors.slice(0, beakers.length).flatMap(color => Array(4).fill(color));
-        const shuffledColors = selectedColors.sort(() => Math.random() - 0.5);
+        const colorsSet = colors.slice(0, level + 2).flatMap(c => Array(4).fill(c));
+        const shuffledColors = colorsSet.sort(() => Math.random() - 0.5);
 
         beakers.forEach(beaker => {
             for (let i = 0; i < 4; i++) {
@@ -223,25 +215,28 @@
         });
     }
 
-    // Select Square
+    // Select and Move Square
     function selectSquare(beaker) {
         if (suspendedSquare) {
             if (!beaker.lastChild || beaker.lastChild.style.backgroundColor === suspendedSquare.style.backgroundColor) {
-                if (beaker.children.length < 4) {
-                    beaker.appendChild(suspendedSquare);
-                    suspendedSquare.classList.remove('suspended');
-                    suspendedSquare = null;
-                    previousBeaker = null;
-                }
-            } else {
-                previousBeaker.appendChild(suspendedSquare);
+                beaker.appendChild(suspendedSquare);
                 suspendedSquare.classList.remove('suspended');
                 suspendedSquare = null;
+                checkLevelCompletion();
             }
         } else if (beaker.lastChild) {
             suspendedSquare = beaker.lastChild;
             previousBeaker = beaker;
             suspendedSquare.classList.add('suspended');
+        }
+    }
+
+    // Check Level Completion
+    function checkLevelCompletion() {
+        if (Array.from(document.querySelectorAll('.beaker')).every(b => b.children.length === 0)) {
+            level++;
+            alert(`Level ${level - 1} Complete! Proceeding to Level ${level}`);
+            initGame();
         }
     }
 </script>
